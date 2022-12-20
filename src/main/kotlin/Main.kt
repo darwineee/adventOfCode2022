@@ -5,6 +5,8 @@ fun main(args: Array<String>) {
 //    puzzle3Part2(args)
 //    puzzle4Part1(args)
 //    puzzle4Part2(args)
-    puzzle5(args, true) // part1
-    puzzle5(args, false) // part2
+//    puzzle5(args, true) // part1
+//    puzzle5(args, false) // part2
+    puzzle6(args, PACKET_MARKER_SIZE) // part 1
+    puzzle6(args, MESSAGE_MARKER_SIZE) // part 2
 }
