@@ -1,6 +1,5 @@
 package puzzle7
 
-import java.util.*
 import kotlin.collections.HashMap
 
 abstract class TreeElement {
@@ -8,21 +7,20 @@ abstract class TreeElement {
     abstract val name: String
 }
 
-object Root : TreeElement() {
-    override val name: String
-        get() = ""
-    override val hashAddress: String
-        get() = hashCode().toString() + UUID.randomUUID().toString()
-}
-
-data class Node(
+open class Node(
     override val name: String,
     val parentAddress: String,
-    val childrenAddress: String
 ) : TreeElement() {
     override val hashAddress: String
-        get() = hashCode().toString() + UUID.randomUUID().toString()
+        get() = name + parentAddress
+
+    val childrenAddress = mutableSetOf<String>()
 }
+
+class Root : Node(
+    name = "root",
+    parentAddress = ""
+)
 
 data class Leaf(
     override val name: String,
@@ -30,41 +28,71 @@ data class Leaf(
     val parentAddress: String,
 ) : TreeElement() {
     override val hashAddress: String
-        get() = hashCode().toString() + UUID.randomUUID().toString()
+        get() = name + size + parentAddress
 }
 
-class Tree (
+class Tree(
     initialCapacity: Int,
     loadFactor: Float,
-): HashMap<String, TreeElement>(initialCapacity, loadFactor) {
+) {
 
-    lateinit var currentAddress: String
-    private set
+    private val treeStorage = HashMap<String, TreeElement>(initialCapacity, loadFactor)
+
+    private var currentAddress: String = ""
+
+    private val rootElement = Root()
 
     init {
         addRootNode()
     }
 
     private fun addRootNode() {
-        this[Root.hashAddress] = Root
-        currentAddress = Root.hashAddress
+        addNode(rootElement)
+        currentAddress = rootElement.hashAddress
     }
 
-    fun addNode(node: puzzle7.Node) {
-        this[node.hashAddress] = node
+    fun addNode(node: Node) {
+        treeStorage.getOrPut(node.hashAddress) { node }
     }
 
     fun addLeaf(leaf: Leaf) {
-        this[leaf.hashAddress] = leaf
+        treeStorage.getOrPut(leaf.hashAddress) { leaf }
     }
 
     fun navigateTo(address: String) {
         currentAddress = address
     }
-}
 
-fun Tree.getTotalCapacityOfLeaves(): Long {
-    return this.values.sumOf {
-        if (it is Leaf) it.size else 0
+    fun getCurrentNode() = getNode(currentAddress)
+
+    private fun getNode(address: String) = if (address == "") {
+        rootElement
+    } else {
+        (treeStorage[address] as? Node)
+            ?: throw IllegalArgumentException("Current address is not a Node or Root.")
     }
+
+    fun getChildNodeInCurrentNode(): List<Node> {
+        return getChildrenInNode(currentAddress)
+            .filterIsInstance<Node>()
+    }
+
+    private fun getChildrenInNode(address: String): List<TreeElement> {
+        return getNode(address).childrenAddress.mapNotNull { treeStorage[it] }
+    }
+
+    fun getNodeSize(address: String): Long {
+        val children = getChildrenInNode(address)
+        var sizeOfLeavesInNode = 0L
+        for (child in children) {
+            sizeOfLeavesInNode += if (child is Leaf) {
+                child.size
+            } else {
+                getNodeSize(child.hashAddress)
+            }
+        }
+        return sizeOfLeavesInNode
+    }
+
+    fun getAllNodes() = treeStorage.values.filterIsInstance<Node>()
 }

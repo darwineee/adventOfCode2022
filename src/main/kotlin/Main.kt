@@ -11,5 +11,6 @@ fun main(args: Array<String>) {
 //    puzzle5(args, false) // part2
 //    puzzle6(args, PACKET_MARKER_SIZE) // part 1
 //    puzzle6(args, MESSAGE_MARKER_SIZE) // part 2
-    puzzle7(args)
+//    puzzle7(args)
+    puzzle20(args)
 }
